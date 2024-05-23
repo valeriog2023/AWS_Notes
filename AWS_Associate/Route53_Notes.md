@@ -1,6 +1,11 @@
 # Route 53 Overview
 
 **Domain Registrar**:  You can use Route53 as your registrar; this is where you can record your own domain. 
+You can however use other registrar and still use route53 to manage your DNS records. In this case you need:
+- a public DNS zone in route 53
+- specify **Amazon DNS servers** in your registrar configuration as the **name servers** instead of using the default ones
+
+### Refresher on DNS names:
 
 **Root DNS Servers** domains are managed by **ICANN**: they will give you the **NS** record of a top server domain.  
 **Top DNS servers** are managed by **IANA**: they manage the top level domain (e.g .com, .net, etc..) and will return the **NS** record of a **Domain Registrar** for the specific second level domain (e.g. amazon.com)  
@@ -99,4 +104,25 @@ The routing policy is specified when creating a new DNS record. You can have the
 - **Latency**: will redirect to the resource that has the least latency close to the client.  
    Note that you actually need to specify the AWS region where the IP lives and that IP served is not necessarily the one from the   
    closest geographic region. These records can be associated to health checks.
-   
+- **Failover**: the primary record must be associated with an **health check**. If the resource is healthy,  
+  route53 will return the IP from the primary record; if it is not it will return the IP from the secondary record  
+  `Primary` vs `Secondary` are attributes that you can set on the records when use a failover routing policy.  
+  Of course you also need to specify one health checks created in advance.
+- **Geolocation**: this is based on where the user is actually located (not the latency); you can specify the location based on (most specific wins):
+  - Continent
+  - Country
+  - US State  
+
+   You should also define a **default** location in case there's no match or in case of a failover (i.e. if you use an **health check** and the resource is down; Geolocation does support health checks).  
+   Use cases are pretty obvious: e.g. content localization and compliance
+- **Geoproximity**: geolocation will localize the result of DNS query based on the source IP but it does not necessarily return the answer of the closest location, you can set the record IP to be whatever you want.  
+  Geoproximity tries to route traffic to your resources based on their geographical location.  
+  You can specify a **Bias** to route more (1 to 99) or less (-1 to -99) traffic to the resource. This works basically by expanding/shrinking the area of the region based on the Bias.
+  Resources can be:
+  - AWS resources (AWS region is used to locate them)
+  - non AWS resources (you need to specify Latitude and Longitude) 
+- **Ip routing**: DNS request routing is based on client's IP address; yuo need to provide a list of CIDRs and the corresponding endpoints/locations (user-IP-to-endpoint mapping)
+- **Multi Value**: use when routing traffic to multiple resources and the records can be associated with **Health Checks**. You can have up to 8 healthy records returned for each Multi-Value query.  
+  Notes: 
+  - this is not a substitute for having an ELB. The **client** will choose which record to use!
+  - you can return mutli records with the default policy too but here you can use health checks together too.
