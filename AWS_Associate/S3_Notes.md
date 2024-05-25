@@ -120,6 +120,13 @@ Notes:
 
 ## S3 Replication (CRR: Cross Region REplication and SRR: Single Region Replication)
 This is used to setup asynchronous replication between buckets; you need to enable: **versioning** in both Buckets and you can use buckets fro different AWS accounts (as long as the perms allows for this).  
+Replication is enabled in the management section/tab of the bucket and uses replication rules
+where you specify:
+- what to replicate
+- the detination bucket  
+- the IAM role to use
+- other replication options (time/deletion/metrics/etc..)
+
 Notes:
 -  Once you enable replication, only new objects will be replicated; if you want to replicate objects that we present before enabling replication, you need to use **S3 Batch Replication**.  
 -  **delete markers** can be replicated but it's optional; deletion with Version ID are **NOT** replicated!
