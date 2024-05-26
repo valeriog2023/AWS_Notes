@@ -137,3 +137,45 @@ the objects in bucket1 are not replicated to bucket3
 Use cases:  
 CRR - compliance, lower latency access, replication accross accounts  
 SRR - log aggregation, live replication between production and test accounts  
+
+## S3 Storage Classes
+
+**Durability** is how probable is to lose an object stored in S3. currently it's 99.999999999% (11 9s) which means if you have 10 milion objects you can expect to lose an object every 10.000 years. **Durability is the same for all storage classes**
+
+**Availability** measures how available the service is; it depends on the storage class, e.g Standard S3 has 00.99% availability (i.e. it's not available upto 53 minues per year)
+
+There are several types of storage, called storage classes:
+- **Amazon S3 Standard**: General Purpose: 99.99% avialbility. Used for Frequently accessed data with low latency and high troughput.  
+  It sustains up to 2 concurrent facility failures and te sue cases are: Big Data Analytics, mobile and gaming applications, content distribution..  
+  No retrieval fee
+- **Amazon S3 Standard-Infrequent Aceess (IA)**: 99.9% availability. Used for data less frequently accesses but requires rapid access when needed.  
+  Use cases are: Disaster recovery, backups  
+  No retrieval fee
+- **Amazon S3 One Zone Infrequent Acces**s: High durability but only in single AZ. Availability is 99.5%. Use cases are: storing secondary backup copies of on-premise data  
+  or dta that you can recreate.  
+  Per GB retrieval fee  
+- **Amazon S3 Glacier**: Low cost object storage class meant for achiving and backup (  Per GB retrieval fee  )
+  - *Instant Retrieval*: millisecond retrieval, minimum storage duration: 90days
+  - *Flexible Retrieval*: expedited retrieval (1 to 5 minutes), standard retrieval (3 to 5 hours), bulk retrieval (5 to 12 hours)  
+    Minimum storage duration: 90days
+  - *Deep Archive*: Standard (12 hours), Bulk (48 hours). Minimum storage 180 days
+- **Intelligent Tiering**: it costs a monthly monitoring fee and auto-tiering fee but it ca move objects automatically between Acess Tiers based on usage.  
+  No retrieval fee  
+  It moves data between different tiers:
+    - Frequent Access (default)
+    - Infrequent Access: object not accessed in 30 days
+    - Archive Frequent Access: object not accessed in 90 days
+    - Archive Access Tier: requires to be enabled and it's configurable; for objects from 90 to 700+ days
+    - Deep Archive Access Tier: requires to be enabled and it's configurable; for objects from 180 to 700+ days
+    
+
+You can choose a class when you create an s3 object, you can also change the calss manually and finally you can use Lifecycle to automatically set the class based on the life cycle rules configured on the object.
+Below a diagram where you can see how objects can change from one class to another.
+
+<img src="pictures/S3_Storage_Classes_transitions.png" alt="Beanstalk tiers" style="height: 700px; width:800px;"/>
+
+Lifecycle rules can be created for a certain prefixes/paths or for certain object tags (e.g. `Department: Finance`) and are based on:
+-  Transition Actions: e.g. move object to Standard IA after 60 days from creation; move to Glacier after 6 months
+-  Expiration Action: e.g. delete files (or old versions) after 365 days (for log files for instance); delete incomplete Multi-Part uploads if they are 2 weeks old, etc..
+
+**Note:** **AMAZON S3 ANALYTICS** can give you good recommendations for storage classes (Standard, Standard IA); it creates a csv report (updated daily) with data about objec access and recommendations (however it does not run on Glacier or One-Zone IA and remember it might take 24H to 48 before you can see some data)
